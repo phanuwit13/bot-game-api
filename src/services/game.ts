@@ -1,11 +1,12 @@
 import { OpenAPIRoute, contentJson } from 'chanfana'
 import { z } from 'zod'
 import { type Context } from 'hono'
+import { ALL_CARDS } from '../constants/card'
 
 // A single playing card
 const CardSchema = z.object({
   number: z.number().int().min(1), // card number (e.g. 1–13)
-  suit: z.enum(['hearts', 'spades', 'diamonds', 'clubs']), // one of the four suits
+  suit: z.string(),
 })
 
 // A “hand” of exactly two cards
@@ -19,13 +20,16 @@ export const BodySchema = z.object({
 
 // Optionally export TS types
 export type Card = z.infer<typeof CardSchema>
-export type Hand = z.infer<typeof HandSchema>
-export type Body = z.infer<typeof BodySchema>
 
 export class GameEndpoint extends OpenAPIRoute {
   schema = {
     request: {
-      body: contentJson(BodySchema),
+      body: contentJson(
+        z.object({
+          playHands: z.array(z.array(CardSchema)),
+          gameType: z.number().or(z.string()),
+        })
+      ),
     },
     responses: {
       // ... responses
@@ -36,20 +40,16 @@ export class GameEndpoint extends OpenAPIRoute {
     const data = await this.getValidatedData<typeof this.schema>()
     const userDetails = data.body // Type-safe access to validated body
 
-    if (userDetails.knownHands.length === 0) {
+    if (String(userDetails.gameType) === '2') {
       //call game2
-      return { message: 'game2' }
+      return game2()
+    }
+    const game1 = (hands: Card[][]): Result[] => {
+      return hands.map((hand) => getResult(hand))
     }
 
-    // ... logic to create a user ...
-    return { message: 'game1' }
+    return game1(userDetails.playHands)
   }
-}
-
-
-type Gamble = {
-  number: number
-  suit: string
 }
 
 function getPoints(n: number): number {
@@ -61,17 +61,16 @@ function getPoints(n: number): number {
 
 type Result = 'hit' | 'stand'
 
-
-function calculatePoints(arr: Gamble[]): number {
+function calculatePoints(arr: Card[]): number {
   return arr.reduce((acc, gamble) => acc + getPoints(gamble.number), 0) % 10
 }
 
-function isTwins(arr: Gamble[]): boolean {
+function isTwins(arr: Card[]): boolean {
   return arr[0].number === arr[1].number
 }
 
-function getResult(hands: Gamble[]): Result {
-  const points = calculatePoints(hands);
+function getResult(hands: Card[]): Result {
+  const points = calculatePoints(hands)
   if (points >= 6) {
     return 'stand'
   }
@@ -81,12 +80,9 @@ function getResult(hands: Gamble[]): Result {
   }
   return 'hit'
 }
-const mock: Gamble[] = [{ number: 1, suit: 'hearts' }, { number: 2, suit: 'hearts' }]
-
-const game1 = (hands: Gamble[][]): Result[] => {
-  return hands.map((hand) => getResult(hand))
-}
 
 const game2 = (): Result[] => {
+  console.log('ALL_CARDS', ALL_CARDS)
+
   return []
 }
