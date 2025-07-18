@@ -1,9 +1,7 @@
 import { Hono } from "hono";
 import { fromHono } from "chanfana";
-import { taskList } from "../../services/tasks/taskList";
-import { taskDetail } from "../../services/tasks/taskDetail";
+import { GameEndpoint } from "../../services/game";
 
-export const tasksRouter = fromHono(new Hono());
+export const gameRouter = fromHono(new Hono());
 
-tasksRouter.get("/", taskList);
-tasksRouter.get("/:id", taskDetail);
+gameRouter.post("/", GameEndpoint);
