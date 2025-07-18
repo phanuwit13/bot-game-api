@@ -46,5 +46,47 @@ export class GameEndpoint extends OpenAPIRoute {
   }
 }
 
-const game1 = () => {}
-const game2 = () => {}
+
+type Gamble = {
+  number: number
+  suit: string
+}
+
+function getPoints(n: number): number {
+  if (n < 10) {
+    return n
+  }
+  return 0
+}
+
+type Result = 'hit' | 'stand'
+
+
+function calculatePoints(arr: Gamble[]): number {
+  return arr.reduce((acc, gamble) => acc + getPoints(gamble.number), 0) % 10
+}
+
+function isTwins(arr: Gamble[]): boolean {
+  return arr[0].number === arr[1].number
+}
+
+function getResult(hands: Gamble[]): Result {
+  const points = calculatePoints(hands);
+  if (points >= 6) {
+    return 'stand'
+  }
+  //4 & 5 must twin
+  if (isTwins(hands) && points > 3) {
+    return 'stand'
+  }
+  return 'hit'
+}
+const mock: Gamble[] = [{ number: 1, suit: 'hearts' }, { number: 2, suit: 'hearts' }]
+
+const game1 = (hands: Gamble[][]): Result[] => {
+  return hands.map((hand) => getResult(hand))
+}
+
+const game2 = (): Result[] => {
+  return []
+}
