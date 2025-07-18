@@ -20,9 +20,7 @@
   "scripts": {
     "cf-typegen": "wrangler types",
     "deploy": "wrangler deploy",
-    "dev": "pnpm seedLocalDb && wrangler dev",
-    "predeploy": "wrangler d1 migrations apply DB --remote",
-    "seedLocalDb": "wrangler d1 migrations apply DB --local",
+    "dev": "wrangler dev",
     "schema": "npx chanfana",
     "test": "wrangler deploy --dry-run && npx vitest run --config tests/vitest.config.mts"
   },

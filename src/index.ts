@@ -2,10 +2,30 @@ import { ApiException, fromHono } from "chanfana";
 import { Hono } from "hono";
 import { tasksRouter } from "./endpoints/tasks/router";
 import { ContentfulStatusCode } from "hono/utils/http-status";
-import { DummyEndpoint } from "./endpoints/dummyEndpoint";
+
+// CORS headers configuration
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization"
+}
 
 // Start a Hono app
 const app = new Hono<{ Bindings: Env }>();
+
+// Add CORS middleware
+app.use('*', async (c, next) => {
+  c.header('Access-Control-Allow-Origin', corsHeaders['Access-Control-Allow-Origin']);
+  c.header('Access-Control-Allow-Methods', corsHeaders['Access-Control-Allow-Methods']);
+  c.header('Access-Control-Allow-Headers', corsHeaders['Access-Control-Allow-Headers']);
+  
+  // Handle preflight requests
+  if (c.req.method === 'OPTIONS') {
+    return c.text('');
+  }
+  
+  await next();
+});
 
 app.onError((err, c) => {
   if (err instanceof ApiException) {
@@ -33,18 +53,16 @@ const openapi = fromHono(app, {
   docs_url: "/",
   schema: {
     info: {
-      title: "My Awesome API",
+      title: "My Video Meeting API",
       version: "2.0.0",
-      description: "This is the documentation for my awesome API.",
+      description: "This is the documentation for my Video Meeting API.",
     },
   },
 });
 
 // Register Tasks Sub router
-openapi.route("/tasks", tasksRouter);
 
-// Register other endpoints
-openapi.post("/dummy/:slug", DummyEndpoint);
+openapi.route("/tasks", tasksRouter);
 
 // Export the Hono app
 export default app;
