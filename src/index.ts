@@ -87,31 +87,11 @@ const app = new Hono<{ Bindings: Env }>()
 
 // Add CORS middleware using Hono's built-in CORS
 app.use('*', cors({
-  origin: ['*'], // เพิ่ม protocol
+  origin: '*',
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowHeaders: ['Content-Type', 'Authorization'],
-  credentials: true, // ถ้าต้องการส่ง cookies
+  credentials: true,
 }))
-
-// หรือถ้าต้องการใช้ manual CORS
-// app.use('*', async (c, next) => {
-//   const origin = c.req.header('Origin')
-//   const allowedOrigins = ['https://mockdeng.web.app', 'http://localhost:3000']
-//   
-//   if (allowedOrigins.includes(origin)) {
-//     c.header('Access-Control-Allow-Origin', origin)
-//   }
-//   
-//   c.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-//   c.header('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-//   c.header('Access-Control-Allow-Credentials', 'true')
-//   
-//   if (c.req.method === 'OPTIONS') {
-//     return c.text('', 200)
-//   }
-//   
-//   await next()
-// })
 
 app.onError((err, c) => {
   if (err instanceof ApiException) {
