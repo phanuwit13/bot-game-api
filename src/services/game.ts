@@ -21,37 +21,38 @@ export const BodySchema = z.object({
 // Optionally export TS types
 export type Card = z.infer<typeof CardSchema>
 
-export class GameEndpoint extends OpenAPIRoute {
-  schema = {
-    request: {
-      body: contentJson(
-        z.object({
-          playHands: z.array(z.array(CardSchema)),
-          gameType: z.number().or(z.string()),
-        })
-      ),
-    },
-    responses: {
-      // ... responses
-    },
+// export class GameEndpoint extends OpenAPIRoute {
+//   schema = {
+//     request: {
+//       body: contentJson(
+//         z.object({
+//           playHands: z.array(z.array(CardSchema)),
+//           gameType: z.number().or(z.string()),
+//         })
+//       ),
+//     },
+//     responses: {
+//       // ... responses
+//     },
+//   }
+
+// }
+
+export async function game(c: Context) {
+  const userDetails = await c.req.json()
+  console.log('userDetails', userDetails)
+
+  if (String(userDetails.gameType) === '2') {
+    const game2 = (hands: Card[][]): Result[] => {
+      return getDecisions(hands)
+    }
+    return c.json(game2(userDetails.playHands))
+  }
+  const game1 = (hands: Card[][]): Result[] => {
+    return hands.map((hand) => getResult(hand))
   }
 
-  async handle(c: Context) {
-    const data = await this.getValidatedData<typeof this.schema>()
-    const userDetails = data.body // Type-safe access to validated body
-
-    if (String(userDetails.gameType) === '2') {
-      const game2 = (hands: Card[][]): Result[] => {
-        return getDecisions(hands)
-      }
-      return game2(userDetails.playHands)
-    }
-    const game1 = (hands: Card[][]): Result[] => {
-      return hands.map((hand) => getResult(hand))
-    }
-
-    return game1(userDetails.playHands)
-  }
+  return c.json(game1(userDetails.playHands))
 }
 
 function getPoints(n: number): number {
